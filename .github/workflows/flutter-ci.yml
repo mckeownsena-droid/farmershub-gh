@@ -1,0 +1,38 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main, chatgpt/mvp-build]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter version
+        run: flutter --version
+      - name: Create platform shells
+        run: flutter create --platforms=android,ios . --org com.mycompany --project-name farmershub_gh
+      - name: Restore Firebase Android config
+        run: git checkout -- android/app/google-services.json
+      - name: Restore Firebase iOS config
+        run: git checkout -- ios/Runner/GoogleService-Info.plist
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Test
+        run: flutter test
+      - name: Build Android debug APK
+        run: flutter build apk --debug
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: farmershub-gh-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
