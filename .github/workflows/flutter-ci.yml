@@ -1,0 +1,64 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main, chatgpt/mvp-build]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter version
+        run: flutter --version
+      - name: Create platform shells
+        run: flutter create --platforms=android,ios,web . --org com.mycompany --project-name farmershub_gh
+      - name: Restore Firebase configs
+        run: |
+          git checkout -- android/app/google-services.json
+          git checkout -- ios/Runner/GoogleService-Info.plist
+      - name: Configure Android Firebase package
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          settings = Path('android/settings.gradle.kts')
+          s = settings.read_text()
+          if 'com.google.gms.google-services' not in s:
+              s = s.replace('id("com.android.application")', 'id("com.google.gms.google-services") version "4.4.4" apply false\n    id("com.android.application")', 1)
+          settings.write_text(s)
+
+          app = Path('android/app/build.gradle.kts')
+          a = app.read_text()
+          if 'id("com.google.gms.google-services")' not in a:
+              a = a.replace('id("com.android.application")', 'id("com.android.application")\n    id("com.google.gms.google-services")', 1)
+          a = re.sub(r'namespace\s*=\s*"[^"]+"', 'namespace = "com.mycompany.farmershubghmvp"', a)
+          a = re.sub(r'applicationId\s*=\s*"[^"]+"', 'applicationId = "com.mycompany.farmershubghmvp"', a)
+          app.write_text(a)
+          PY
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+      - name: Test
+        run: flutter test
+      - name: Build Android release APK
+        run: flutter build apk --release
+      - name: Upload Android Beta 2 release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: farmershub-gh-beta2-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Build web release
+        run: flutter build web --release
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: farmershub-gh-web
+          path: build/web
