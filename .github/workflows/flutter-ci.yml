@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  analyze-and-test:
+  analyze-test-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
       - name: Flutter version
         run: flutter --version
       - name: Create platform shells
-        run: flutter create --platforms=android,ios . --org com.mycompany --project-name farmershub_gh
+        run: flutter create --platforms=android,ios,web . --org com.mycompany --project-name farmershub_gh
       - name: Restore Firebase configs
         run: |
           git checkout -- android/app/google-services.json
@@ -55,3 +55,10 @@ jobs:
         with:
           name: farmershub-gh-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
+      - name: Build web release
+        run: flutter build web --release
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: farmershub-gh-web
+          path: build/web
