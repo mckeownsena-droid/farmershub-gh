@@ -17,6 +17,10 @@ service cloud.firestore {
       return signedIn() && resource.data.user_id == request.auth.uid;
     }
 
+    function preservesOwnership() {
+      return ownsStored() && ownsIncoming();
+    }
+
     match /users/{userId} {
       allow create, read, update: if isOwner(userId);
       allow delete: if false;
@@ -24,17 +28,24 @@ service cloud.firestore {
 
     match /farms/{farmId} {
       allow create: if ownsIncoming();
-      allow read, update, delete: if ownsStored();
+      allow read, delete: if ownsStored();
+      allow update: if preservesOwnership();
     }
 
     match /transactions/{transactionId} {
       allow create: if ownsIncoming();
-      allow read, update, delete: if ownsStored();
+      allow read, delete: if ownsStored();
+      allow update: if preservesOwnership();
     }
 
     match /crops/{cropId} {
       allow create: if ownsIncoming();
-      allow read, update, delete: if ownsStored();
+      allow read, delete: if ownsStored();
+      allow update: if preservesOwnership();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
