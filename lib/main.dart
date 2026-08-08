@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'src/app_v4.dart';
+import 'src/app_v5.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,5 +21,5 @@ Future<void> main() async {
     await Firebase.initializeApp();
   }
 
-  runApp(const FarmersHubApp());
+  runApp(const FarmersHubAppV5());
 }
