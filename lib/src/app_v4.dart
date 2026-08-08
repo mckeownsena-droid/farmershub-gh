@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'profitability_insight_card.dart';
+
 const farmerGreen = Color(0xFF2E7D32);
 const darkGreen = Color(0xFF1B5E20);
 const pageBg = Color(0xFFF5F7F2);
@@ -676,6 +678,7 @@ class CropProfitPage extends StatelessWidget {
           final profitPerAcre = acres > 0 ? netProfit / acres : 0.0;
           final breakEven = expectedYield > 0 ? expenses / expectedYield : 0.0;
           final expectedRevenue = expectedYield * expectedPrice;
+          final yieldUnit = '${crop['yield_unit'] ?? 'unit'}';
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
@@ -685,10 +688,19 @@ class CropProfitPage extends StatelessWidget {
               stat('Expenses', expenses),
               stat('Net Profit', netProfit),
               stat('Profit per acre', profitPerAcre),
-              stat('Break-even price per ${crop['yield_unit'] ?? 'unit'}', breakEven),
+              stat('Break-even price per $yieldUnit', breakEven),
               stat('Expected revenue', expectedRevenue),
               const SizedBox(height: 8),
               const Text('Break-even price = recorded crop expenses ÷ expected yield.'),
+              const SizedBox(height: 12),
+              ProfitabilityInsightCard(
+                income: income,
+                expenses: expenses,
+                acreage: acres,
+                expectedYield: expectedYield,
+                expectedSellingPrice: expectedPrice,
+                yieldUnit: yieldUnit,
+              ),
             ],
           );
         },
