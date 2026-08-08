@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "crops",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "user_id", "order": "ASCENDING"},
+        {"fieldPath": "farm_id", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
