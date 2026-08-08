@@ -1,0 +1,42 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [chatgpt/mvp-build, main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter version
+        run: flutter --version
+      - name: Create iOS platform shell
+        run: flutter create --platforms=ios . --org com.mycompany --project-name farmershub_gh
+      - name: Restore iOS Firebase config
+        run: git checkout -- ios/Runner/GoogleService-Info.plist
+      - name: Configure iOS bundle identifier
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('ios/Runner.xcodeproj/project.pbxproj')
+          text = p.read_text()
+          text = text.replace('com.mycompany.farmershubGh', 'com.mycompany.farmershubghmvp')
+          text = text.replace('com.mycompany.farmershub_gh', 'com.mycompany.farmershubghmvp')
+          p.write_text(text)
+          PY
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Build iOS without code signing
+        run: flutter build ios --debug --no-codesign
+      - name: Upload iOS app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: farmershub-gh-ios-unsigned
+          path: build/ios/iphoneos/Runner.app
