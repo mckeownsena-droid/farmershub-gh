@@ -40,6 +40,8 @@ try:
         doc_id = 'beta_acceptance_' + secrets.token_hex(8)
         url = f'{base}/{collection}/{doc_id}'
         fields = {'user_id': {'stringValue': owner['localId']}, 'name': {'stringValue': 'Temporary beta verification'}}
+        if collection == 'crops':
+            fields['farm_id'] = {'stringValue': 'beta_query_fixture'}
         if collection == 'transactions':
             fields.update({'type': {'stringValue': 'Expense'}, 'amount': {'doubleValue': 100}})
         request(url, {'fields': fields}, owner['idToken'], 'PATCH')
@@ -52,7 +54,32 @@ try:
         except urllib.error.HTTPError as exc:
             if exc.code != 403:
                 raise
-        print(f'{collection}: owner write/read and cross-account rejection passed')
+        for operation, payload in (
+            ('PATCH', {'fields': {'user_id': {'stringValue': other['localId']}}}),
+            ('DELETE', None),
+        ):
+            try:
+                request(url, payload, other['idToken'], operation)
+                raise AssertionError(f'Cross-account {operation} allowed for {collection}')
+            except urllib.error.HTTPError as exc:
+                if exc.code != 403:
+                    raise
+        try:
+            request(url, {'fields': {'user_id': {'stringValue': other['localId']}}}, owner['idToken'], 'PATCH')
+            raise AssertionError(f'Ownership transfer allowed for {collection}')
+        except urllib.error.HTTPError as exc:
+            if exc.code != 403:
+                raise
+        if collection == 'crops':
+            query = {'structuredQuery': {'from': [{'collectionId': 'crops'}], 'where': {
+                'compositeFilter': {'op': 'AND', 'filters': [
+                    {'fieldFilter': {'field': {'fieldPath': 'user_id'}, 'op': 'EQUAL', 'value': {'stringValue': owner['localId']}}},
+                    {'fieldFilter': {'field': {'fieldPath': 'farm_id'}, 'op': 'EQUAL', 'value': {'stringValue': 'beta_query_fixture'}}},
+                ]}}}}
+            rows = request(base + ':runQuery', query, owner['idToken'], 'POST')
+            assert any(row.get('document', {}).get('name', '').endswith('/' + doc_id) for row in rows)
+            print('Crop owner/farm compound query passed.')
+        print(f'{collection}: owner write/read, cross-account read/write/delete rejection and ownership preservation passed')
     print('Deployed Firebase beta acceptance passed.')
 finally:
     failures = 0

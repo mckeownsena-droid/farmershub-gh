@@ -15,7 +15,7 @@ Verified application commit: eb61be3cf8f99ad3458fe8cca17998f377fef83f.
 ## Firebase fix
 On 30 September 2026, deployed the repository-equivalent owner-only rules to farmershub-gh-new through an authenticated administrator session. Previous rules granted every signed-in account access to all documents. Temporary two-account checks now pass for owner writes/reads and cross-account read rejection in farms, crops and transactions. All temporary records/accounts cleaned up.
 
-Created the required crops Collection composite index: user_id ASC, farm_id ASC. Index construction must finish before crop-query acceptance.
+Created the required crops Collection composite index: user_id ASC, farm_id ASC. Firebase console confirms the index is Enabled.
 
 ## Remaining acceptance
 Use docs/BETA_TESTING.md for the controlled ten-farmer pilot. Full farm/crop/transaction UI flows, offline reconnection, password reset and physical-device coverage are not yet verified. The final signing container was validated, but the emulator installation used the same release application bytes with a disposable CI signer. Do not describe these checks as a completed broad-beta acceptance.
