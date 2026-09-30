@@ -51,7 +51,15 @@ class _AuthGateV5 extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        return snapshot.data == null ? const v4.LoginPage() : const _MainShellV5();
+        if (snapshot.hasError) {
+          return const Scaffold(
+              body: Center(
+                  child: Text(
+                      'Unable to check your account. Please reopen the app.')));
+        }
+        return snapshot.data == null
+            ? const v4.LoginPage()
+            : const _MainShellV5();
       },
     );
   }
@@ -82,9 +90,12 @@ class _MainShellV5State extends State<_MainShellV5> {
         onDestinationSelected: (value) => setState(() => index = value),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), label: 'Reports'),
-          NavigationDestination(icon: Icon(Icons.agriculture_outlined), label: 'Farms'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
+          NavigationDestination(
+              icon: Icon(Icons.bar_chart_outlined), label: 'Reports'),
+          NavigationDestination(
+              icon: Icon(Icons.agriculture_outlined), label: 'Farms'),
+          NavigationDestination(
+              icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
       ),
     );
@@ -110,7 +121,8 @@ class EnhancedReportsPage extends StatelessWidget {
   Widget _bucketCard(FinancialBucket bucket) {
     return Card(
       child: ListTile(
-        title: Text(bucket.name, style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(bucket.name,
+            style: const TextStyle(fontWeight: FontWeight.w800)),
         subtitle: Text(
           'Income ${v4.money.format(bucket.income)} • Expenses ${v4.money.format(bucket.expenses)}\n'
           'Margin ${bucket.marginPercent.toStringAsFixed(1)}%',
@@ -138,13 +150,15 @@ class EnhancedReportsPage extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Unable to load reports right now.'));
+            return const Center(
+                child: Text('Unable to load reports right now.'));
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final transactions = snapshot.data!.docs.map((doc) => doc.data()).toList();
+          final transactions =
+              snapshot.data!.docs.map((doc) => doc.data()).toList();
           final summary = buildReportSummary(transactions);
           final bestFarm = summary.bestFarm;
           final bestCrop = summary.bestCrop;
@@ -163,7 +177,8 @@ class EnhancedReportsPage extends StatelessWidget {
               _moneyCard(
                 'Net Profit',
                 summary.netProfit,
-                subtitle: 'Overall margin ${summary.marginPercent.toStringAsFixed(1)}%',
+                subtitle:
+                    'Overall margin ${summary.marginPercent.toStringAsFixed(1)}%',
               ),
               if (bestFarm != null || bestCrop != null) ...[
                 const SizedBox(height: 18),
@@ -174,7 +189,8 @@ class EnhancedReportsPage extends StatelessWidget {
                 if (bestFarm != null)
                   Card(
                     child: ListTile(
-                      leading: const Icon(Icons.agriculture, color: v4.farmerGreen),
+                      leading:
+                          const Icon(Icons.agriculture, color: v4.farmerGreen),
                       title: const Text('Best-performing farm'),
                       subtitle: Text(bestFarm.name),
                       trailing: Text(
@@ -204,7 +220,8 @@ class EnhancedReportsPage extends StatelessWidget {
               if (summary.farms.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 10),
-                  child: Text('Link transactions to a farm to see farm-by-farm performance.'),
+                  child: Text(
+                      'Link transactions to a farm to see farm-by-farm performance.'),
                 )
               else
                 ...summary.farms.map(_bucketCard),
@@ -216,7 +233,8 @@ class EnhancedReportsPage extends StatelessWidget {
               if (summary.crops.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 10),
-                  child: Text('Link transactions to crops to see crop-by-crop performance.'),
+                  child: Text(
+                      'Link transactions to crops to see crop-by-crop performance.'),
                 )
               else
                 ...summary.crops.map(_bucketCard),

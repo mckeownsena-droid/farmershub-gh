@@ -1,7 +1,7 @@
 name: farmershub_gh
 description: FarmersHub GH MVP - farm finance and management for Ghanaian farmers.
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.3.0+3
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
