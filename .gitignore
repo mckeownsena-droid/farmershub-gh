@@ -16,3 +16,5 @@ android/captures/
 
 /ios/Flutter/
 /ios/Runner/GeneratedPluginRegistrant.*
+
+android/.kotlin/
