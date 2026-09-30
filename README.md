@@ -60,15 +60,37 @@ Primary brand color: `#2E7D32`.
 - `status` string
 - `created_time` timestamp
 
-## Firebase configuration required before running
+## Android development and release
 
-This repository intentionally does not contain private Firebase platform configuration files. Use the existing Firebase project (`farmershub-gh-new`) and add the generated configuration for the platform you want to run:
+The Android shell is committed. Use Flutter **3.35.0**, Java 17 and Android SDK 36. The application ID, namespace and launcher class are consistently `com.mycompany.farmershubghmvp`, matching the existing Firebase Android registration in `farmershub-gh-new`.
 
-- Android: `android/app/google-services.json`
-- iOS: `ios/Runner/GoogleService-Info.plist`
-- Web/Desktop: run FlutterFire CLI to generate `lib/firebase_options.dart`, then initialize Firebase with `DefaultFirebaseOptions.currentPlatform`.
+```bash
+flutter pub get
+python3 scripts/check_android.py
+flutter analyze --no-fatal-infos
+flutter test
+flutter run
+```
 
-For Android/iOS, the simplest path is to create a normal Flutter project shell, copy this repository's `lib/`, `pubspec.yaml`, and Firebase files into it, then run `flutter pub get`.
+For a signed beta release, securely restore the retained beta keystore and create ignored `android/key.properties`:
+
+```properties
+storeFile=/absolute/path/to/farmershub-beta.jks
+storePassword=YOUR_PRIVATE_PASSWORD
+keyPassword=YOUR_PRIVATE_PASSWORD
+keyAlias=farmershub-beta
+```
+
+```bash
+flutter build apk --release
+bash scripts/android_smoke.sh build/app/outputs/flutter-apk/app-release.apk
+```
+
+The release APK is `build/app/outputs/flutter-apk/app-release.apk`. Release builds require private signing configuration and do not fall back to debug signing. Keep the same keystore for future beta updates. The Android beta verification workflow builds and emulator-tests a release candidate with a disposable CI signer. Re-sign it privately with the retained beta key before distribution. See docs/RELEASE_STATUS.md for tested behavior and remaining pilot acceptance.
+
+See [beta testing](docs/BETA_TESTING.md) for rollout checks and [crash investigation](docs/ANDROID_CRASH.md) for the launcher defect. `python3 scripts/firebase_acceptance.py` checks the deployed Auth/Firestore service with temporary accounts and deletes its test records afterward.
+
+Android/iOS client Firebase configuration files are present. They identify the public Firebase app and are not server admin credentials. For iOS/Web configuration and testing, use the matching app registration; Android is the verified target for this milestone.
 
 ## Firebase console requirements
 

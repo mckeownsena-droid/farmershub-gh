@@ -1,0 +1,53 @@
+name: Android beta verification
+on:
+  pull_request:
+    branches: [main, chatgpt/mvp-build]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      FLUTTER_SUPPRESS_ANALYTICS: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.0'
+          channel: stable
+          cache: true
+      - run: python3 scripts/check_android.py
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - name: Create disposable CI signer
+        run: |
+          keytool -genkeypair -keystore "$RUNNER_TEMP/ci.jks" -storepass ci-only-password -keypass ci-only-password -alias ci -keyalg RSA -keysize 3072 -validity 30 -dname "CN=Disposable CI"
+          printf 'storeFile=%s\nstorePassword=ci-only-password\nkeyPassword=ci-only-password\nkeyAlias=ci\n' "$RUNNER_TEMP/ci.jks" > android/key.properties
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-resign-before-distribution
+          path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel_2
+          script: bash scripts/android_smoke.sh build/app/outputs/flutter-apk/app-release.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-emulator-evidence
+          path: build/beta-smoke/
