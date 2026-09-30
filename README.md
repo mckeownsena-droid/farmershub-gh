@@ -86,7 +86,7 @@ flutter build apk --release
 bash scripts/android_smoke.sh build/app/outputs/flutter-apk/app-release.apk
 ```
 
-The release APK is `build/app/outputs/flutter-apk/app-release.apk`. Release builds require private signing configuration and do not fall back to debug signing. Keep the same keystore for future beta updates. CI development artifacts are explicitly debug APKs; they are separate from signed beta releases.
+The release APK is `build/app/outputs/flutter-apk/app-release.apk`. Release builds require private signing configuration and do not fall back to debug signing. Keep the same keystore for future beta updates. The Android beta verification workflow builds and emulator-tests a release candidate with a disposable CI signer. Re-sign it privately with the retained beta key before distribution. See docs/RELEASE_STATUS.md for tested behavior and remaining pilot acceptance.
 
 See [beta testing](docs/BETA_TESTING.md) for rollout checks and [crash investigation](docs/ANDROID_CRASH.md) for the launcher defect. `python3 scripts/firebase_acceptance.py` checks the deployed Auth/Firestore service with temporary accounts and deletes its test records afterward.
 

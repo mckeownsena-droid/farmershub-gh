@@ -1,7 +1,7 @@
 # FarmersHub GH Android beta 0.3.0 (build 3)
 
 ## Release gate
-**Current blocker:** deployed Firestore allowed cross-account farm reads. Deploy the owner-only rules and rerun `scripts/firebase_acceptance.py` before widening the beta.
+Owner-only rules were deployed on 30 September 2026 and the temporary two-account ownership acceptance passed. The release emulator launch/relaunch checks passed. Complete the remaining physical-device and full-flow checklist below before widening the beta. See RELEASE_STATUS.md for exact evidence and limits.
 
 Distribute only after the signed release APK has passed the Android launcher smoke test and the connected Firebase acceptance checks below. A successful compile alone does not satisfy this gate.
 
@@ -33,4 +33,4 @@ Record app version/build, Android version/device, steps, expected result, actual
 Profit figures depend on the income and expenses recorded; projected profit uses expected yield and selling price. This beta does not independently verify market prices. Offline caching does not provide offline account creation. Firebase Authentication, Firestore rules and indexes must be deployed/configured in farmershub-gh-new before a broader beta.
 
 ## Signing
-Keep the beta keystore outside Git and retain it securely for future updates. The build reads android/key.properties (ignored by Git). CI requires the corresponding private signing values; never commit them. Google Services Android configuration is client configuration, not a server credential.
+Keep the beta keystore outside Git and retain it securely for future updates. The build reads android/key.properties (ignored by Git). CI creates a disposable signer for release verification. Re-sign its artifact privately with the retained beta key before distribution; never commit signing secrets. Google Services Android configuration is client configuration, not a server credential.
