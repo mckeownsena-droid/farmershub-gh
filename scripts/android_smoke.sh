@@ -20,10 +20,10 @@ done
 sleep 15
 "$adb" -s "$serial" shell pidof "$package" | tee "$out/pid.txt"
 "$adb" -s "$serial" logcat -d > "$out/logcat.txt"
-if rg -n 'FATAL EXCEPTION|Unable to instantiate activity|ClassNotFoundException.*MainActivity|FarmersHub startup failed' "$out/logcat.txt"; then exit 1; fi
+if grep -En 'FATAL EXCEPTION|Unable to instantiate activity|ClassNotFoundException.*MainActivity|FarmersHub startup failed' "$out/logcat.txt"; then exit 1; fi
 "$adb" -s "$serial" exec-out screencap -p > "$out/login.png"
 "$adb" -s "$serial" shell am force-stop "$package"
 "$adb" -s "$serial" shell am start -W -n "$package/$package.MainActivity" > "$out/relaunch.txt"
 sleep 5
 "$adb" -s "$serial" shell pidof "$package"
-printf 'Release APK launch and relaunch passed. Inspect login.png before acceptance.\n'
+printf 'APK launch and relaunch passed. Inspect login.png before acceptance.\n'
